@@ -26,6 +26,8 @@ last = wdir + 'last.pt'
 best = wdir + 'best.pt'
 results_file = 'results.txt'
 
+epsilons = [0, .05, .1, .15, .2, .25, .3]
+
 # Hyperparameters
 hyp = {'lr0': 0.01,  # initial learning rate (SGD=1E-2, Adam=1E-3)
        'momentum': 0.937,  # SGD momentum
@@ -57,6 +59,17 @@ if f:
 # Print focal loss if gamma > 0
 if hyp['fl_gamma']:
     print('Using FocalLoss(gamma=%g)' % hyp['fl_gamma'])
+
+# FGSM attack code
+def fgsm_attack(image, epsilon, data_grad):
+    # Collect the element-wise sign of the data gradient
+    sign_data_grad = data_grad.sign()
+    # Create the perturbed image by adjusting each pixel of the input image
+    perturbed_image = image + epsilon*sign_data_grad
+    # Adding clipping to maintain [0,1] range
+    perturbed_image = torch.clamp(perturbed_image, 0, 1)
+    # Return the perturbed image
+    return perturbed_image
 
 
 def train(hyp):
@@ -259,6 +272,18 @@ def train(hyp):
                     scaled_loss.backward()
             else:
                 loss.backward()
+
+            # Collect datagrad
+            data_grad = imgs.grad.data
+
+            # Call FGSM Attack
+            perturbed_data = fgsm_attack(imgs, 0.05, data_grad)
+
+            # Re-classify the perturbed image
+            output = model(perturbed_data)
+
+            # Recalculate Loss
+            loss, loss_items = compute_loss(output, targets.to(device), model)
 
             # Optimize
             if ni % accumulate == 0:
