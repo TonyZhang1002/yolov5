@@ -217,7 +217,7 @@ def train(hyp):
     print('Image sizes %g train, %g test' % (imgsz, imgsz_test))
     print('Using %g dataloader workers' % dataloader.num_workers)
     print('Starting training for %g epochs...' % epochs)
-    torch.autograd.set_detect_anomaly(True)
+    # torch.autograd.set_detect_anomaly(True)
     for epoch in range(start_epoch, epochs):  # epoch ------------------------------------------------------------------
         model.train()
 
