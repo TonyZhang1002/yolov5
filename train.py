@@ -257,6 +257,9 @@ def train(hyp):
                     ns = [math.ceil(x * sf / gs) * gs for x in imgs.shape[2:]]  # new shape (stretched to gs-multiple)
                     imgs = F.interpolate(imgs, size=ns, mode='bilinear', align_corners=False)
 
+            # Set requires_grad attribute of tensor. Important for Attack
+            imgs.requires_grad = True
+
             # Forward
             pred = model(imgs)
 
