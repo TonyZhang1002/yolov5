@@ -291,6 +291,13 @@ def train(hyp):
             # Recalculate Loss
             loss, loss_items = compute_loss(output, targets.to(device), model)
 
+            # Backward
+            if mixed_precision:
+                with amp.scale_loss(loss, optimizer) as scaled_loss:
+                    scaled_loss.backward()
+            else:
+                loss.backward()
+
             # Optimize
             if ni % accumulate == 0:
                 optimizer.step()
